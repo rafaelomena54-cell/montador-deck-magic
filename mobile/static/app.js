@@ -67,7 +67,6 @@ function addToGrimorio(c,qty=1){
  saveGrimorio();
  renderGrimorio();
 }
-
 // TRADUÇÃO DAS CARTAS
 const cardLanguages = {
   en:"Inglês",
