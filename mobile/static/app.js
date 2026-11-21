@@ -1,6 +1,6 @@
 const $=id=>document.getElementById(id);
 const COLORS=[{k:"W",n:"Branco"},{k:"U",n:"Azul"},{k:"B",n:"Preto"},{k:"R",n:"Vermelho"},{k:"G",n:"Verde"}];
-const state={cards:[],auth:null,sb:null,catalog:{cards:[],offset:0,apiPage:1,hasMore:false,query:""}};
+const state={cards:[],grimorio:[],auth:null,sb:null,catalog:{cards:[],offset:0,apiPage:1,hasMore:false,query:""}};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2600)}
 function configReady(){return window.APP_CONFIG?.SUPABASE_URL?.startsWith("https://")&&!window.APP_CONFIG.SUPABASE_URL.includes("SEU-PROJETO")&&window.APP_CONFIG.SUPABASE_ANON_KEY&&!window.APP_CONFIG.SUPABASE_ANON_KEY.includes("SUA_CHAVE")}
