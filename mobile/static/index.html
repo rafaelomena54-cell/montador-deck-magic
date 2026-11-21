@@ -1,119 +1,48 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#171c29">
-  <title>Montador de Deck Magic</title>
-  <link rel="manifest" href="/static/manifest.webmanifest">
-  <link rel="stylesheet" href="/static/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/static/config.js"></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#171c29"><title>Montador de Deck Magic</title>
+<link rel="manifest" href="/static/manifest.webmanifest"><link rel="stylesheet" href="/static/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/static/config.js"></script>
 </head>
 <body>
-<header class="top">
-  <div><div class="eyebrow">MAGIC: THE GATHERING</div><h1>Montador de Deck</h1></div>
-  <button id="installBtn" class="ghost" hidden>Instalar</button>
-</header>
-
+<header class="top"><div><div class="eyebrow">MAGIC: THE GATHERING</div><h1>Montador de Deck</h1></div><button id="signOut" class="ghost" hidden>Sair</button></header>
+<section id="loginView" class="login-wrap">
+ <div class="panel"><h2>Entrar na sua conta</h2><p class="muted">Faça login para acessar o montador e seus decks.</p>
+ <label>E-mail<input id="email" type="email" autocomplete="email" placeholder="Seu e-mail"></label>
+ <label>Senha<input id="password" type="password" autocomplete="current-password" placeholder="Sua senha"></label>
+ <div class="row"><button id="signIn">Entrar</button><button id="signUp" class="secondary">Criar conta</button></div>
+ <p id="loginHelp" class="hint">O acesso exige configurar o Supabase no arquivo mobile/static/config.js.</p></div>
+</section>
+<div id="appView" hidden>
+<nav class="tabs">
+ <button data-page="builder" class="active">Montar deck</button><button data-page="cards">Buscar cartas</button><button data-page="catalog">Catálogo</button><button data-page="stats">Estatísticas</button><button data-page="saved">Meus decks</button>
+</nav>
 <main>
-  <section class="panel account">
-    <div class="section-head"><h2>Conta e sincronização</h2><span id="authStatus" class="muted">Não conectado</span></div>
-    <div class="row">
-      <input id="email" type="email" placeholder="Seu e-mail" autocomplete="email">
-      <input id="password" type="password" placeholder="Senha" autocomplete="current-password">
-    </div>
-    <div class="row">
-      <button id="signIn">Entrar</button><button id="signUp" class="secondary">Criar conta</button><button id="signOut" class="ghost">Sair</button>
-    </div>
-    <p class="hint">A sincronização na nuvem exige configurar o Supabase conforme o README. Sem login, o deck fica salvo neste aparelho.</p>
-  </section>
-
-  <section class="panel">
-    <h2>Configuração do deck</h2>
-    <label>Nome do deck<input id="deckName" value="Meu novo deck" maxlength="60"></label>
-    <label>Formato
-      <select id="format">
-        <option value="standard">Standard</option><option value="pioneer">Pioneer</option>
-        <option value="modern">Modern</option><option value="legacy">Legacy</option>
-        <option value="vintage">Vintage</option><option value="pauper">Pauper</option>
-        <option value="commander">Commander</option><option value="duel">Duel Commander</option>
-        <option value="brawl">Brawl</option><option value="historic">Historic</option>
-        <option value="explorer">Explorer</option><option value="timeless">Timeless</option>
-        <option value="oathbreaker">Oathbreaker</option><option value="limited">Limitado / Casual</option>
-      </select>
-    </label>
-    <label>Combinação de cores</label>
-    <div id="colors" class="color-grid"></div>
-    <label>Guilda / combinação conhecida
-      <select id="guild">
-        <option value="">Personalizada / nenhuma</option>
-        <optgroup label="Guildas (2 cores)">
-          <option>Azorius</option><option>Dimir</option><option>Rakdos</option><option>Gruul</option><option>Selesnya</option>
-          <option>Orzhov</option><option>Izzet</option><option>Golgari</option><option>Boros</option><option>Simic</option>
-        </optgroup>
-        <optgroup label="Combinações de 3 cores">
-          <option>Bant</option><option>Esper</option><option>Grixis</option><option>Jund</option><option>Naya</option>
-          <option>Abzan</option><option>Jeskai</option><option>Mardu</option><option>Sultai</option><option>Temur</option>
-        </optgroup>
-        <optgroup label="4 cores">
-          <option>Sans-Black</option><option>Sans-Blue</option><option>Sans-Red</option><option>Sans-Green</option><option>Sans-White</option>
-        </optgroup>
-        <option value="5c">Five-Color</option><option value="colorless">Incolor</option>
-      </select>
-    </label>
-    <label>Estilo principal
-      <select id="style">
-        <option>Aggro</option><option>Control</option><option>Midrange</option><option>Tempo</option>
-        <option>Ramp</option><option>Combo</option><option>Burn</option><option>Stompy</option>
-        <option>Tribal / Typal</option><option>Tokens</option><option>Aristocrats</option><option>Reanimator</option>
-        <option>Spellslinger</option><option>Voltron / Auras</option><option>Artifacts</option><option>Enchantress</option>
-        <option>Landfall</option><option>Mill</option><option>Discard</option><option>Prison / Stax</option>
-        <option>Flicker / Blink</option><option>Superfriends</option><option>Graveyard</option><option>Battlecruiser</option>
-        <option>Customizado</option>
-      </select>
-    </label>
-    <label>Subestratégias (separe por vírgula)<input id="substyles" placeholder="Ex.: Izzet Ramp, Spellslinger, Elementais"></label>
-    <div class="row">
-      <button id="saveLocal">Salvar neste aparelho</button><button id="saveCloud" class="secondary">Salvar na nuvem</button>
-    </div>
-  </section>
-
-  <section class="panel">
-    <h2>Adicionar cartas</h2>
-    <div class="row">
-      <input id="search" placeholder="Nome ou busca Scryfall (ex.: c:ur o:ramp)" autocomplete="off">
-      <button id="searchBtn">Buscar</button>
-    </div>
-    <div id="searchResults" class="results"></div>
-    <div class="hint">Toque em uma carta para adicioná-la. Você também pode importar uma lista de texto abaixo.</div>
-    <label>Importar lista (uma carta por linha; exemplo: 4 Lightning Bolt)<textarea id="importText" rows="4" placeholder="4 Island&#10;4 Mountain&#10;4 Lightning Bolt"></textarea></label>
-    <button id="importBtn" class="secondary">Importar lista</button>
-  </section>
-
-  <section class="panel">
-    <div class="section-head"><h2>Meu deck</h2><strong id="deckCount">0 cartas</strong></div>
-    <div id="deckList" class="deck-list"><p class="muted">Adicione cartas para começar.</p></div>
-    <div class="row"><button id="clearDeck" class="danger">Limpar deck</button><button id="exportDeck" class="secondary">Exportar .txt</button></div>
-  </section>
-
-  <section class="panel">
-    <div class="section-head"><h2>Análise estatística</h2><span class="muted">Calculada pelas cartas adicionadas</span></div>
-    <div id="stats" class="stats-grid"></div>
-    <h3>Curva de mana</h3><div id="curve" class="curve"></div>
-    <h3>Distribuição por tipo</h3><div id="types" class="bar-list"></div>
-    <h3>Distribuição de cores</h3><div id="colorStats" class="bar-list"></div>
-    <h3>Composição e alertas</h3><div id="analysisNotes" class="notes"></div>
-    <p class="hint">As estatísticas descrevem a lista; não são uma nota de força nem garantem desempenho. A análise de cores usa os dados de identidade/cor fornecidos pela Scryfall.</p>
-  </section>
-
-  <section class="panel">
-    <h2>Meus decks salvos</h2>
-    <div id="savedDecks" class="saved-list"><p class="muted">Nenhum deck carregado.</p></div>
-  </section>
-</main>
-<nav class="bottom-nav"><a href="#deckName">Deck</a><a href="#search">Cartas</a><a href="#stats">Estatísticas</a><a href="#savedDecks">Salvos</a></nav>
+<section class="page active" id="page-builder">
+ <div class="panel"><h2>Configuração do deck</h2>
+ <label>Nome<input id="deckName" value="Meu novo deck" maxlength="60"></label>
+ <label>Formato<select id="format"><option value="standard">Standard</option><option value="pioneer">Pioneer</option><option value="modern">Modern</option><option value="legacy">Legacy</option><option value="vintage">Vintage</option><option value="pauper">Pauper</option><option value="commander">Commander</option><option value="duel">Duel Commander</option><option value="brawl">Brawl</option><option value="historic">Historic</option><option value="explorer">Explorer</option><option value="timeless">Timeless</option><option value="oathbreaker">Oathbreaker</option><option value="limited">Limitado / Casual</option></select></label>
+ <label>Cores</label><div id="colors" class="color-grid"></div>
+ <label>Guilda / combinação<select id="guild"><option value="">Personalizada / nenhuma</option><optgroup label="2 cores"><option>Azorius</option><option>Dimir</option><option>Rakdos</option><option>Gruul</option><option>Selesnya</option><option>Orzhov</option><option>Izzet</option><option>Golgari</option><option>Boros</option><option>Simic</option></optgroup><optgroup label="3 cores"><option>Bant</option><option>Esper</option><option>Grixis</option><option>Jund</option><option>Naya</option><option>Abzan</option><option>Jeskai</option><option>Mardu</option><option>Sultai</option><option>Temur</option></optgroup><option value="5c">Five-Color</option><option value="colorless">Incolor</option></select></label>
+ <label>Estilo<select id="style"><option>Aggro</option><option>Control</option><option>Midrange</option><option>Tempo</option><option>Ramp</option><option>Combo</option><option>Burn</option><option>Stompy</option><option>Tribal / Typal</option><option>Tokens</option><option>Aristocrats</option><option>Reanimator</option><option>Spellslinger</option><option>Voltron / Auras</option><option>Artifacts</option><option>Enchantress</option><option>Landfall</option><option>Mill</option><option>Discard</option><option>Prison / Stax</option><option>Flicker / Blink</option><option>Superfriends</option><option>Graveyard</option><option>Battlecruiser</option><option>Customizado</option></select></label>
+ <label>Subestratégias<input id="substyles" placeholder="Ex.: Izzet Ramp, Spellslinger"></label>
+ <div class="row"><button id="saveLocal">Salvar neste aparelho</button><button id="saveCloud" class="secondary">Salvar na nuvem</button></div></div>
+ <div class="panel"><div class="section-head"><h2>Cartas do deck</h2><b id="deckCount">0 cartas</b></div><div id="deckList" class="deck-list"><p class="muted">Adicione cartas na página Buscar cartas.</p></div>
+ <label>Importar lista<textarea id="importText" rows="4" placeholder="4 Island&#10;4 Mountain&#10;4 Lightning Bolt"></textarea></label><button id="importBtn" class="secondary">Importar lista</button>
+ <div class="row"><button id="clearDeck" class="danger">Limpar deck</button><button id="exportDeck" class="secondary">Exportar .txt</button></div></div>
+</section>
+<section class="page" id="page-cards">
+ <div class="panel"><h2>Buscar cartas</h2><div class="row"><input id="search" placeholder="Nome ou busca Scryfall (ex.: c:ur o:ramp)"><button id="searchBtn">Buscar</button></div><div id="searchResults" class="results"></div><p class="hint">Toque em “Detalhes” para ler o texto completo da carta, ou em “Adicionar” para colocá-la no deck.</p></div>
+</section>
+<section class="page" id="page-catalog"><div class="panel"><h2>Catálogo de cartas</h2><p class="muted">Navegue pelo catálogo de Magic em ordem alfabética.</p><label>Pesquisar no catálogo<input id="catalogSearch" placeholder="Nome da carta (opcional)"></label><label>Tipo de carta<select id="catalogType"><option value="">Todos os tipos</option><option value="creature">Criatura</option><option value="instant">Mágica instantânea</option><option value="sorcery">Feitiço</option><option value="artifact">Artefato</option><option value="enchantment">Encantamento</option><option value="land">Terreno</option><option value="planeswalker">Planeswalker</option><option value="battle">Batalha</option><option value="kindred">Tribal / Kindred</option></select></label><div class="row"><button id="catalogLoad">Carregar cartas</button><button id="catalogReset" class="secondary">Limpar filtros</button></div><div class="section-head"><strong id="catalogPageLabel">Página 1</strong><span class="muted" id="catalogCount"></span></div><div id="catalogResults" class="results"><p class="muted">Escolha um filtro ou toque em Carregar cartas.</p></div><div class="row"><button id="catalogPrev" class="secondary" disabled>← Anterior</button><button id="catalogNext" disabled>Próxima →</button></div></div></section>
+<section class="page" id="page-stats">
+ <div class="panel"><h2>Análise estatística</h2><div id="stats" class="stats-grid"></div><h3>Curva de mana</h3><div id="curve" class="curve"></div><h3>Distribuição por tipo</h3><div id="types" class="bar-list"></div><h3>Distribuição de cores</h3><div id="colorStats" class="bar-list"></div><h3>Alertas</h3><div id="analysisNotes" class="notes"></div></div>
+</section>
+<section class="page" id="page-saved"><div class="panel"><h2>Meus decks salvos na nuvem</h2><div id="savedDecks" class="saved-list"><p class="muted">Nenhum deck carregado.</p></div></div></section>
+</main></div>
+<div id="cardModal" class="modal" hidden><div class="modal-card"><button id="closeModal" class="ghost close">Fechar</button><div id="cardDetail"></div></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="/static/app.js"></script>
-</body>
-</html>
+</body></html>
