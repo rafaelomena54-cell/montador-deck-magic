@@ -4,7 +4,20 @@ const state={cards:[],auth:null,sb:null,catalog:{cards:[],offset:0,apiPage:1,has
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2600)}
 function configReady(){return window.APP_CONFIG?.SUPABASE_URL?.startsWith("https://")&&!window.APP_CONFIG.SUPABASE_URL.includes("SEU-PROJETO")&&window.APP_CONFIG.SUPABASE_ANON_KEY&&!window.APP_CONFIG.SUPABASE_ANON_KEY.includes("SUA_CHAVE")}
-function showLogin(){ $("loginView").hidden=false;$("appView").hidden=true;$("signOut").hidden=true; }
+function showLogin(){
+  const setupDone = localStorage.getItem("mtg-setup-complete");
+
+  $("appView").hidden = true;
+  $("signOut").hidden = true;
+
+  if(setupDone){
+    $("setupView").hidden = true;
+    $("loginView").hidden = false;
+  }else{
+    $("loginView").hidden = true;
+    $("setupView").hidden = false;
+  }
+}
 function showApp(){ $("loginView").hidden=true;$("appView").hidden=false;$("signOut").hidden=false; }
 function authUi(){if(state.auth?.user){showApp();loadLocal();loadCloudDecks()}else showLogin()}
 function initAuth(){
@@ -183,3 +196,34 @@ function saveSettings(){
 $("openSettings")?.addEventListener("click", openSettings);
 $("closeSettings")?.addEventListener("click", closeSettings);
 $("saveSettings")?.addEventListener("click", saveSettings);
+// FINALIZAR CONFIGURAÇÃO INICIAL
+function finishSetup(){
+  const s = {
+    language: $("setupLanguage").value,
+    background: $("setupBackground").value,
+    panel: $("setupPanel").value.trim().toLowerCase(),
+    button: $("setupButton").value.trim().toLowerCase()
+  };
+
+  const validColors = [
+    "preto","branco","cinza","azul","verde",
+    "vermelho","roxo","amarelo","laranja","rosa"
+  ];
+
+  if(!validColors.includes(s.panel) || !validColors.includes(s.button)){
+    return toast("Escolha cores válidas da lista.");
+  }
+
+  if(s.panel === s.button){
+    return toast("Escolha cores diferentes para painéis e botões.");
+  }
+
+  localStorage.setItem(settingsKey, JSON.stringify(s));
+  localStorage.setItem("mtg-setup-complete", "true");
+
+  applySettings(s);
+  $("setupView").hidden = true;
+  showLogin();
+}
+
+$("finishSetup")?.addEventListener("click", finishSetup);
