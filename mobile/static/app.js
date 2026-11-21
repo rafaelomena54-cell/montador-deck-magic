@@ -105,21 +105,49 @@ function loadSettings(){
 
 function applySettings(s){
   const colors = {
-    preto:"#000000", branco:"#ffffff", cinza:"#333333",
-    azul:"#2563eb", verde:"#16a34a", vermelho:"#dc2626",
-    roxo:"#7c3aed", amarelo:"#eab308", laranja:"#ea580c",
+    preto:"#000000",
+    branco:"#ffffff",
+    cinza:"#333333",
+    azul:"#2563eb",
+    verde:"#16a34a",
+    vermelho:"#dc2626",
+    roxo:"#7c3aed",
+    amarelo:"#eab308",
+    laranja:"#ea580c",
     rosa:"#db2777"
   };
+
+  const buttonColors = {
+    azul: {bg:"#2563eb", text:"#ffffff"},
+    verde: {bg:"#16a34a", text:"#ffffff"},
+    vermelho: {bg:"#dc2626", text:"#ffffff"},
+    roxo: {bg:"#7c3aed", text:"#ffffff"},
+    amarelo: {bg:"#eab308", text:"#111111"},
+    laranja: {bg:"#ea580c", text:"#ffffff"},
+    rosa: {bg:"#db2777", text:"#ffffff"},
+    preto: {bg:"#000000", text:"#ffffff"},
+    branco: {bg:"#ffffff", text:"#111111"},
+    cinza: {bg:"#333333", text:"#ffffff"}
+  };
+
+  const selectedButton = buttonColors[s.button] || buttonColors.azul;
 
   document.documentElement.style.setProperty(
     "--bg", s.background || "#000000"
   );
+
   document.documentElement.style.setProperty(
     "--panel", colors[s.panel] || "#333333"
   );
+
   document.documentElement.style.setProperty(
-    "--accent", colors[s.button] || "#2563eb"
+    "--accent", selectedButton.bg
   );
+
+  document.documentElement.style.setProperty(
+    "--button-text", selectedButton.text
+  );
+
   document.documentElement.style.setProperty(
     "--text", s.background === "#ffffff" ? "#111111" : "#ffffff"
   );
