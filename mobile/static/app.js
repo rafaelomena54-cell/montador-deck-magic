@@ -227,3 +227,9 @@ function finishSetup(){
 }
 
 $("finishSetup")?.addEventListener("click", finishSetup);
+// RESTAURAR CORES AO ABRIR O APLICATIVO
+const startupSettings = JSON.parse(
+  localStorage.getItem(settingsKey) || "{}"
+);
+
+applySettings(startupSettings);
