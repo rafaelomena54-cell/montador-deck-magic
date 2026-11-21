@@ -7,7 +7,16 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/static/config.js"></script>
 </head>
 <body>
-<header class="top"><div><div class="eyebrow">MAGIC: THE GATHERING</div><h1>Montador de Deck</h1></div><button id="signOut" class="ghost" hidden>Sair</button></header>
+<header class="top">
+  <div>
+    <div class="eyebrow">MAGIC: THE GATHERING</div>
+    <h1>Montador de Deck</h1>
+  </div>
+  <div class="row">
+    <button id="openSettings" class="ghost" title="Configurações">⚙️</button>
+    <button id="signOut" class="ghost" hidden>Sair</button>
+  </div>
+</header>
 <section id="loginView" class="login-wrap">
  <div class="panel"><h2>Entrar na sua conta</h2><p class="muted">Faça login para acessar o montador e seus decks.</p>
  <label>E-mail<input id="email" type="email" autocomplete="email" placeholder="Seu e-mail"></label>
