@@ -43,6 +43,30 @@ function payload(){return{...meta(),cards:state.cards,updated_at:new Date().toIS
 async function scry(q){const r=await fetch("https://api.scryfall.com/cards/search?q="+encodeURIComponent(q)+"&order=name");const j=await r.json();if(!r.ok)throw Error(j.details||"Busca sem resultados");return j.data||[]}
 function cardImage(c){return c.image_uris?.normal||c.card_faces?.[0]?.image_uris?.normal||""}
 function addCard(c,qty=1){const x=state.cards.find(v=>v.id===c.id);if(x)x.qty+=qty;else state.cards.push({id:c.id,name:c.name,qty,cmc:c.cmc||0,type_line:c.type_line||"",colors:c.colors||[],color_identity:c.color_identity||[],mana_cost:c.mana_cost||"",image:c.image_uris?.small||c.card_faces?.[0]?.image_uris?.small||"",legalities:c.legalities||{},oracle_text:c.oracle_text||c.card_faces?.map(f=>f.oracle_text).join("\n//\n")||""});renderDeck();renderStats()}
+function addToGrimorio(c,qty=1){
+ const x=state.grimorio.find(v=>v.id===c.id);
+
+ if(x){
+  x.qty+=qty;
+ }else{
+  state.grimorio.push({
+   id:c.id,
+   name:c.name,
+   qty,
+   cmc:c.cmc||0,
+   type_line:c.type_line||"",
+   colors:c.colors||[],
+   color_identity:c.color_identity||[],
+   mana_cost:c.mana_cost||"",
+   image:c.image_uris?.small||c.card_faces?.[0]?.image_uris?.small||"",
+   legalities:c.legalities||{},
+   oracle_text:c.oracle_text||c.card_faces?.map(f=>f.oracle_text).join("\n//\n")||""
+  });
+ }
+
+ saveGrimorio();
+ renderGrimorio();
+}
 
 // TRADUÇÃO DAS CARTAS
 const cardLanguages = {
@@ -229,9 +253,86 @@ async function openDetails(c){
 }
 function closeDetails(){$("cardModal").hidden=true}
 async function searchCards(){const q=$("search").value.trim();if(!q)return;$("searchResults").innerHTML='<p class="muted">Buscando…</p>';try{const cards=await scry(q);$("searchResults").innerHTML=cards.slice(0,20).map((c,i)=>`<div class="card-row">${c.image_uris?.small||c.card_faces?.[0]?.image_uris?.small?`<img src="${esc(c.image_uris?.small||c.card_faces[0].image_uris.small)}" alt="">`:""}<div class="grow"><strong>${esc(c.name)}</strong><small>${esc(c.type_line)} · MV ${c.cmc}</small></div><button data-detail="${i}" class="secondary">Detalhes</button><button data-add="${i}">Adicionar</button></div>`).join("");$("searchResults").querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>openDetails(cards[+b.dataset.detail]));$("searchResults").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{addCard(cards[+b.dataset.add]);toast("Carta adicionada.")})}catch(e){$("searchResults").innerHTML=`<p class="muted">${esc(e.message)}</p>`}}
+async function searchGrimorio(){
+ const q=$("grimorioSearch").value.trim();
+ if(!q)return;
+
+ $("grimorioResults").innerHTML='<p class="muted">Buscando cartas…</p>';
+
+ try{
+  const cards=await scry(q);
+
+  $("grimorioResults").innerHTML=cards.slice(0,20).map((c,i)=>`
+   <div class="card-row">
+    ${c.image_uris?.small||c.card_faces?.[0]?.image_uris?.small?`<img src="${esc(c.image_uris?.small||c.card_faces[0].image_uris.small)}" alt="">`:""}
+    <div class="grow">
+     <strong>${esc(c.name)}</strong>
+     <small>${esc(c.type_line)} · MV ${c.cmc}</small>
+    </div>
+    <button data-gdetail="${i}" class="secondary">Detalhes</button>
+    <button data-gadd="${i}">Adicionar</button>
+   </div>
+  `).join("");
+
+  $("grimorioResults").querySelectorAll("[data-gdetail]").forEach(b=>{
+   b.onclick=()=>openDetails(cards[+b.dataset.gdetail]);
+  });
+
+  $("grimorioResults").querySelectorAll("[data-gadd]").forEach(b=>{
+   b.onclick=()=>{
+    addToGrimorio(cards[+b.dataset.gadd]);
+    toast("Carta adicionada ao Grimório!");
+   };
+  });
+
+ }catch(e){
+  $("grimorioResults").innerHTML=`<p class="muted">${esc(e.message)}</p>`;
+ }
+}
 function renderDeck(){$("deckCount").textContent=state.cards.reduce((s,c)=>s+c.qty,0)+" cartas";$("deckList").innerHTML=state.cards.length?state.cards.map((c,i)=>`<div class="card-row">${c.image?`<img src="${esc(c.image)}" alt="">`:""}<div class="grow"><strong>${esc(c.name)}</strong><small>${esc(c.type_line)} · MV ${c.cmc}</small></div><button data-info="${i}" class="secondary">Ver</button><button data-minus="${i}" class="secondary">−</button><b>${c.qty}</b><button data-plus="${i}">+</button><button data-del="${i}" class="danger">×</button></div>`).join(""):'<p class="muted">Adicione cartas para começar.</p>';
  $("deckList").querySelectorAll("[data-info]").forEach(b=>b.onclick=async()=>{try{const r=await fetch("https://api.scryfall.com/cards/"+state.cards[+b.dataset.info].id);openDetails(await r.json())}catch{toast("Não foi possível carregar os detalhes.")}});
  $("deckList").querySelectorAll("[data-minus]").forEach(b=>b.onclick=()=>changeQty(+b.dataset.minus,-1));$("deckList").querySelectorAll("[data-plus]").forEach(b=>b.onclick=()=>changeQty(+b.dataset.plus,1));$("deckList").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{state.cards.splice(+b.dataset.del,1);renderDeck();renderStats()})}
+function renderGrimorio(){
+ $("grimorioCount").textContent=state.grimorio.reduce((s,c)=>s+c.qty,0)+" cartas";
+
+ const filtro=($("grimorioFilter").value||"").toLowerCase();
+
+ const cartas=state.grimorio.filter(c=>c.name.toLowerCase().includes(filtro));
+
+ $("grimorioList").innerHTML=cartas.length?cartas.map((c,i)=>`
+ <div class="card-row">
+  ${c.image?`<img src="${esc(c.image)}" alt="">`:""}
+  <div class="grow">
+   <strong>${esc(c.name)}</strong>
+   <small>${esc(c.type_line)} · MV ${c.cmc}</small>
+  </div>
+  <button data-gminus="${i}" class="secondary">−</button>
+  <b>${c.qty}</b>
+  <button data-gplus="${i}">+</button>
+  <button data-gdel="${i}" class="danger">×</button>
+ </div>`).join(""):'<p class="muted">Nenhuma carta encontrada.</p>';
+
+ $("grimorioList").querySelectorAll("[data-gminus]").forEach(b=>b.onclick=()=>{
+  const c=cartas[+b.dataset.gminus];
+  if(c.qty>1)c.qty--;
+  else state.grimorio=state.grimorio.filter(x=>x.id!==c.id);
+  saveGrimorio();
+  renderGrimorio();
+ });
+
+ $("grimorioList").querySelectorAll("[data-gplus]").forEach(b=>b.onclick=()=>{
+  cartas[+b.dataset.gplus].qty++;
+  saveGrimorio();
+  renderGrimorio();
+ });
+
+ $("grimorioList").querySelectorAll("[data-gdel]").forEach(b=>b.onclick=()=>{
+  const c=cartas[+b.dataset.gdel];
+  state.grimorio=state.grimorio.filter(x=>x.id!==c.id);
+  saveGrimorio();
+  renderGrimorio();
+ });
+}
 function changeQty(i,d){state.cards[i].qty+=d;if(state.cards[i].qty<=0)state.cards.splice(i,1);renderDeck();renderStats()}
 async function importList(){const lines=$("importText").value.split(/\n/).map(x=>x.trim()).filter(Boolean);for(const line of lines){const m=line.match(/^(\d+)\s+(.+)$/),qty=m?Math.max(1,Math.min(99,+m[1])):1,name=m?m[2]:line;try{const cards=await scry('!"'+name.replace(/"/g,"")+'"');if(cards[0])addCard(cards[0],qty);else toast("Não encontrada: "+name)}catch{toast("Não encontrada: "+name)}}toast("Importação concluída.")}
 function renderBars(id,obj){const max=Math.max(1,...Object.values(obj));$(id).innerHTML=Object.entries(obj).map(([k,v])=>`<div class="bar-row"><span>${esc(k)}</span><div class="bar-bg"><div class="bar-fill" style="width:${v/max*100}%"></div></div><b>${v}</b></div>`).join("")}
@@ -415,3 +516,13 @@ const startupSettings = JSON.parse(
 );
 
 applySettings(startupSettings);
+$("grimorioSearchBtn").onclick=searchGrimorio;
+
+$("grimorioSearch").addEventListener("keydown",e=>{
+ if(e.key==="Enter")searchGrimorio();
+});
+
+$("grimorioFilter").addEventListener("input",renderGrimorio);
+
+loadGrimorio();
+renderGrimorio();
