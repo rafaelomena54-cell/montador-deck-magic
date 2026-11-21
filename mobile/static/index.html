@@ -17,6 +17,65 @@
     <button id="signOut" class="ghost" hidden>Sair</button>
   </div>
 </header>
+  <section id="setupView" class="login-wrap" hidden>
+  <div class="panel">
+    <h2>Bem-vindo ao Montador de Deck Magic!</h2>
+    <p>Configure seu aplicativo antes de começar.</p>
+
+    <label>Idioma do aplicativo
+      <select id="setupLanguage">
+        <option value="pt-BR">Português</option>
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="ja">日本語</option>
+      </select>
+    </label>
+
+    <label>Cor de fundo
+      <select id="setupBackground">
+        <option value="#000000">Preto</option>
+        <option value="#ffffff">Branco</option>
+      </select>
+    </label>
+
+    <label>Cor dos painéis
+      <input id="setupPanel" list="setupPanelColors" placeholder="Pesquisar ou escolher">
+      <datalist id="setupPanelColors">
+        <option value="preto">
+        <option value="branco">
+        <option value="cinza">
+        <option value="azul">
+        <option value="verde">
+        <option value="vermelho">
+        <option value="roxo">
+        <option value="amarelo">
+        <option value="laranja">
+        <option value="rosa">
+      </datalist>
+    </label>
+
+    <label>Cor dos botões e das letras
+      <input id="setupButton" list="setupButtonColors" placeholder="Pesquisar ou escolher">
+      <datalist id="setupButtonColors">
+        <option value="preto">
+        <option value="branco">
+        <option value="cinza">
+        <option value="azul">
+        <option value="verde">
+        <option value="vermelho">
+        <option value="roxo">
+        <option value="amarelo">
+        <option value="laranja">
+        <option value="rosa">
+      </datalist>
+    </label>
+
+    <button id="finishSetup">Salvar e continuar</button>
+  </div>
+  </section>
 <section id="loginView" class="login-wrap">
  <div class="panel"><h2>Entrar na sua conta</h2><p class="muted">Faça login para acessar o montador e seus decks.</p>
  <label>E-mail<input id="email" type="email" autocomplete="email" placeholder="Seu e-mail"></label>
