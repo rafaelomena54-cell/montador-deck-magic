@@ -1,0 +1,12 @@
+MONTADOR DE DECK MAGIC — COMECE AQUI
+
+1) Extraia este ZIP.
+2) Envie os arquivos extraídos para um repositório novo no GitHub.
+3) No Render, escolha New + > Blueprint e conecte esse repositório.
+4) O Render usa o render.yaml automaticamente. Clique em Deploy/Apply.
+5) Abra o endereço HTTPS gerado no Chrome do Android > ⋮ > Instalar app.
+
+NÃO precisa configurar Supabase para usar o app.
+Use "Salvar neste aparelho" para guardar seus decks no celular.
+Supabase é opcional e serve apenas para sincronização na nuvem.
+Consulte README.md para detalhes.
