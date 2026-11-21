@@ -15,6 +15,10 @@ app.mount("/static", StaticFiles(directory=STATIC), name="static")
 def home():
     return FileResponse(STATIC / "index.html")
 
+@app.get("/baixar")
+def download_page():
+    return FileResponse(STATIC / "baixar.html")
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -29,14 +33,17 @@ async def ligamagic_market(card: str):
         return JSONResponse({"configured": False, "message": "REEFAPI_KEY não configurada."})
     try:
         async with httpx.AsyncClient(timeout=25) as client:
-            response = await client.post("https://api.reefapi.com/ligamagic/v1/card", headers={"x-api-key": api_key, "content-type": "application/json"}, json={"game": "magic", "card": card, "offers_limit": 20})
+            response = await client.post(
+                "https://api.reefapi.com/ligamagic/v1/card",
+                headers={"x-api-key": api_key, "content-type": "application/json"},
+                json={"game": "magic", "card": card, "offers_limit": 20}
+            )
         response.raise_for_status()
         return response.json()
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=f"Serviço de preços respondeu com erro HTTP {exc.response.status_code}.")
     except Exception:
         raise HTTPException(status_code=502, detail="Serviço de preços indisponível no momento.")
-
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000)
