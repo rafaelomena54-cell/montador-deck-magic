@@ -146,9 +146,36 @@
 </section>  
 <div id="appView" hidden>
 <nav class="tabs">
- <button data-page="builder" class="active">Montar deck</button><button data-page="cards">Buscar cartas</button><button data-page="catalog">Catálogo</button><button data-page="stats">Estatísticas</button><button data-page="saved">Meus decks</button>
+ <button data-page="builder" class="active">Montar deck</button>
+ <button data-page="grimorio">Grimório</button>
+ <button data-page="cards">Buscar cartas</button><button data-page="catalog">Catálogo</button><button data-page="stats">Estatísticas</button><button data-page="saved">Meus decks</button>
 </nav>
 <main>
+  <section class="page" id="page-grimorio">
+ <div class="panel">
+  <h2>📖 Meu Grimório</h2>
+  <p class="muted">Gerencie as cartas que você possui.</p>
+  <label>Pesquisar cartas
+   <input id="grimorioSearch" placeholder="Digite o nome da carta">
+  </label>
+  <button id="grimorioSearchBtn">Buscar cartas</button>
+  <div id="grimorioResults" class="results">
+   <p class="muted">Pesquise cartas para adicionar ao seu Grimório.</p>
+  </div>
+ </div>
+ <div class="panel">
+  <div class="section-head">
+   <h2>Minhas cartas</h2>
+   <b id="grimorioCount">0 cartas</b>
+  </div>
+  <label>Filtrar coleção
+   <input id="grimorioFilter" placeholder="Filtrar pelo nome da carta">
+  </label>
+  <div id="grimorioList" class="deck-list">
+   <p class="muted">Seu Grimório está vazio.</p>
+  </div>
+ </div>
+</section>
 <section class="page active" id="page-builder">
  <div class="panel"><h2>Configuração do deck</h2>
  <label>Nome<input id="deckName" value="Meu novo deck" maxlength="60"></label>
