@@ -19,7 +19,17 @@ function showLogin(){
   }
 }
 function showApp(){ $("loginView").hidden=true;$("appView").hidden=false;$("signOut").hidden=false; }
-function authUi(){if(state.auth?.user){showApp();loadLocal();loadCloudDecks()}else showLogin()}
+function authUi(){
+ if(state.auth?.user){
+  showApp();
+  loadLocal();
+  loadGrimorio();
+  renderGrimorio();
+  loadCloudDecks();
+ }else{
+  showLogin();
+ }
+}
 function initAuth(){
  if(!configReady()||!window.supabase){$("loginHelp").textContent="Configure SUPABASE_URL e SUPABASE_ANON_KEY em mobile/static/config.js antes de usar.";return}
  state.sb=window.supabase.createClient(APP_CONFIG.SUPABASE_URL,APP_CONFIG.SUPABASE_ANON_KEY);
@@ -559,6 +569,3 @@ $("grimorioSearch").addEventListener("keydown",e=>{
 });
 
 $("grimorioFilter").addEventListener("input",renderGrimorio);
-
-loadGrimorio();
-renderGrimorio();
