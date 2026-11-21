@@ -291,6 +291,7 @@ async function searchGrimorio(){
 function renderDeck(){$("deckCount").textContent=state.cards.reduce((s,c)=>s+c.qty,0)+" cartas";$("deckList").innerHTML=state.cards.length?state.cards.map((c,i)=>`<div class="card-row">${c.image?`<img src="${esc(c.image)}" alt="">`:""}<div class="grow"><strong>${esc(c.name)}</strong><small>${esc(c.type_line)} · MV ${c.cmc}</small></div><button data-info="${i}" class="secondary">Ver</button><button data-minus="${i}" class="secondary">−</button><b>${c.qty}</b><button data-plus="${i}">+</button><button data-del="${i}" class="danger">×</button></div>`).join(""):'<p class="muted">Adicione cartas para começar.</p>';
  $("deckList").querySelectorAll("[data-info]").forEach(b=>b.onclick=async()=>{try{const r=await fetch("https://api.scryfall.com/cards/"+state.cards[+b.dataset.info].id);openDetails(await r.json())}catch{toast("Não foi possível carregar os detalhes.")}});
  $("deckList").querySelectorAll("[data-minus]").forEach(b=>b.onclick=()=>changeQty(+b.dataset.minus,-1));$("deckList").querySelectorAll("[data-plus]").forEach(b=>b.onclick=()=>changeQty(+b.dataset.plus,1));$("deckList").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{state.cards.splice(+b.dataset.del,1);renderDeck();renderStats()})}
+
 function renderGrimorio(){
  $("grimorioCount").textContent=state.grimorio.reduce((s,c)=>s+c.qty,0)+" cartas";
 
@@ -298,18 +299,40 @@ function renderGrimorio(){
 
  const cartas=state.grimorio.filter(c=>c.name.toLowerCase().includes(filtro));
 
- $("grimorioList").innerHTML=cartas.length?cartas.map((c,i)=>`
- <div class="card-row">
-  ${c.image?`<img src="${esc(c.image)}" alt="">`:""}
-  <div class="grow">
-   <strong>${esc(c.name)}</strong>
-   <small>${esc(c.type_line)} · MV ${c.cmc}</small>
-  </div>
-  <button data-gminus="${i}" class="secondary">−</button>
-  <b>${c.qty}</b>
-  <button data-gplus="${i}">+</button>
-  <button data-gdel="${i}" class="danger">×</button>
- </div>`).join(""):'<p class="muted">Nenhuma carta encontrada.</p>';
+ $("grimorioList").innerHTML=cartas.length?cartas.map((c,i)=>{
+  const noDeck=state.cards.find(x=>x.id===c.id);
+  const disponiveis=Math.max(0,c.qty-(noDeck?.qty||0));
+
+  return `
+   <div class="card-row">
+    ${c.image?`<img src="${esc(c.image)}" alt="">`:""}
+    <div class="grow">
+     <strong>${esc(c.name)}</strong>
+     <small>${esc(c.type_line)} · MV ${c.cmc}</small>
+     <small>Disponíveis para o deck: ${disponiveis}</small>
+    </div>
+    <button data-gdeck="${i}" ${disponiveis<=0?"disabled":""}>Adicionar ao Deck</button>
+    <button data-gminus="${i}" class="secondary">−</button>
+    <b>${c.qty}</b>
+    <button data-gplus="${i}">+</button>
+    <button data-gdel="${i}" class="danger">×</button>
+   </div>`;
+ }).join(""):'<p class="muted">Nenhuma carta encontrada.</p>';
+
+ $("grimorioList").querySelectorAll("[data-gdeck]").forEach(b=>b.onclick=()=>{
+  const c=cartas[+b.dataset.gdeck];
+  const noDeck=state.cards.find(x=>x.id===c.id);
+  const usados=noDeck?.qty||0;
+
+  if(usados>=c.qty){
+   toast("Você não possui mais cópias disponíveis!");
+   return;
+  }
+
+  addCard(c,1);
+  renderGrimorio();
+  toast("Carta adicionada ao Deck!");
+ });
 
  $("grimorioList").querySelectorAll("[data-gminus]").forEach(b=>b.onclick=()=>{
   const c=cartas[+b.dataset.gminus];
