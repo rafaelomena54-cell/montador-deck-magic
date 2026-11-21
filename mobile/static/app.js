@@ -77,3 +77,72 @@ function openSettings(){
 }
 
 $("openSettings")?.addEventListener("click",openSettings);
+
+// CONFIGURAÇÕES DO APLICATIVO
+const settingsKey = "mtg-app-settings";
+
+function openSettings(){
+  $("loginView").hidden = true;
+  $("appView").hidden = true;
+  $("settingsView").hidden = false;
+  loadSettings();
+}
+
+function closeSettings(){
+  $("settingsView").hidden = true;
+  if(state.auth?.user) showApp();
+  else showLogin();
+}
+
+function loadSettings(){
+  const s = JSON.parse(localStorage.getItem(settingsKey) || "{}");
+  $("appLanguage").value = s.language || "pt-BR";
+  $("pageBackground").value = s.background || "#000000";
+  $("panelColor").value = s.panel || "cinza";
+  $("buttonColor").value = s.button || "azul";
+  applySettings(s);
+}
+
+function applySettings(s){
+  const colors = {
+    preto:"#000000", branco:"#ffffff", cinza:"#333333",
+    azul:"#2563eb", verde:"#16a34a", vermelho:"#dc2626",
+    roxo:"#7c3aed", amarelo:"#eab308", laranja:"#ea580c",
+    rosa:"#db2777"
+  };
+
+  document.documentElement.style.setProperty(
+    "--bg", s.background || "#000000"
+  );
+  document.documentElement.style.setProperty(
+    "--panel", colors[s.panel] || "#333333"
+  );
+  document.documentElement.style.setProperty(
+    "--accent", colors[s.button] || "#2563eb"
+  );
+  document.documentElement.style.setProperty(
+    "--text", s.background === "#ffffff" ? "#111111" : "#ffffff"
+  );
+}
+
+function saveSettings(){
+  const s = {
+    language: $("appLanguage").value,
+    background: $("pageBackground").value,
+    panel: $("panelColor").value.trim().toLowerCase(),
+    button: $("buttonColor").value.trim().toLowerCase()
+  };
+
+  if(s.panel === s.button){
+    return toast("Escolha cores diferentes para painéis e botões.");
+  }
+
+  localStorage.setItem(settingsKey, JSON.stringify(s));
+  applySettings(s);
+  toast("Configurações salvas!");
+  closeSettings();
+}
+
+$("openSettings")?.addEventListener("click", openSettings);
+$("closeSettings")?.addEventListener("click", closeSettings);
+$("saveSettings")?.addEventListener("click", saveSettings);
