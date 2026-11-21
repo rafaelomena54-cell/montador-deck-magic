@@ -161,6 +161,15 @@ function saveSettings(){
     button: $("buttonColor").value.trim().toLowerCase()
   };
 
+  const validColors = [
+    "preto","branco","cinza","azul","verde",
+    "vermelho","roxo","amarelo","laranja","rosa"
+  ];
+
+  if(!validColors.includes(s.panel) || !validColors.includes(s.button)){
+    return toast("Escolha cores válidas da lista.");
+  }
+
   if(s.panel === s.button){
     return toast("Escolha cores diferentes para painéis e botões.");
   }
