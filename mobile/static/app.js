@@ -43,8 +43,190 @@ function payload(){return{...meta(),cards:state.cards,updated_at:new Date().toIS
 async function scry(q){const r=await fetch("https://api.scryfall.com/cards/search?q="+encodeURIComponent(q)+"&order=name");const j=await r.json();if(!r.ok)throw Error(j.details||"Busca sem resultados");return j.data||[]}
 function cardImage(c){return c.image_uris?.normal||c.card_faces?.[0]?.image_uris?.normal||""}
 function addCard(c,qty=1){const x=state.cards.find(v=>v.id===c.id);if(x)x.qty+=qty;else state.cards.push({id:c.id,name:c.name,qty,cmc:c.cmc||0,type_line:c.type_line||"",colors:c.colors||[],color_identity:c.color_identity||[],mana_cost:c.mana_cost||"",image:c.image_uris?.small||c.card_faces?.[0]?.image_uris?.small||"",legalities:c.legalities||{},oracle_text:c.oracle_text||c.card_faces?.map(f=>f.oracle_text).join("\n//\n")||""});renderDeck();renderStats()}
-function detailMarkup(c){const faces=c.card_faces||[];const rules=c.oracle_text||faces.map(f=>f.oracle_text||"").join("\n\n//\n\n");const liga="https://www.ligamagic.com.br/?view=cards/card&card="+encodeURIComponent(c.name);const bolovo="https://www.bolovogames.com.br/?view=ecom/home";return `<div class="detail-layout">${cardImage(c)?`<img class="detail-image" src="${esc(cardImage(c))}" alt="${esc(c.name)}">`:""}<div><h2>${esc(c.name)}</h2><p class="muted">${esc(c.mana_cost||"")} · ${esc(c.type_line||"")}</p><h3>Texto da carta</h3><p class="rules">${esc(rules||"Sem texto de regras.")}</p>${c.power!==undefined?`<p><b>Força/Resistência:</b> ${esc(c.power)}/${esc(c.toughness)}</p>`:""}<p class="muted">Coleção: ${esc(c.set_name||"")} · Raridade: ${esc(c.rarity||"")}</p><div class="market-actions"><button id="checkMarket">Consultar preço e estoque</button><a class="market-link" href="${liga}" target="_blank" rel="noopener">Abrir esta carta na LigaMagic</a><a class="market-link secondary-link" href="${bolovo}" target="_blank" rel="noopener">Abrir catálogo da Bolovo Games</a></div></div></div><div id="marketInfo" class="market-info"></div>`}
-async function openDetails(c){$("cardDetail").innerHTML=detailMarkup(c);$("cardModal").hidden=false;const b=$("checkMarket");if(b)b.onclick=()=>loadMarket(c);}
+
+// TRADUÇÃO DAS CARTAS
+const cardLanguages = {
+  en:"Inglês",
+  pt:"Português",
+  es:"Espanhol",
+  fr:"Francês",
+  de:"Alemão",
+  it:"Italiano",
+  ja:"Japonês",
+  ko:"Coreano",
+  ru:"Russo",
+  "zh-CN":"Chinês simplificado",
+  "zh-TW":"Chinês tradicional",
+  nl:"Holandês",
+  pl:"Polonês",
+  sv:"Sueco",
+  da:"Dinamarquês",
+  fi:"Finlandês",
+  tr:"Turco",
+  uk:"Ucraniano",
+  ar:"Árabe"
+};
+
+const scryfallLanguages = {
+  zhs:"zh-CN",
+  zht:"zh-TW"
+};
+
+function cardSourceLanguage(card){
+  return scryfallLanguages[card.lang] || card.lang || "en";
+}
+
+function languageName(code){
+  return cardLanguages[code] || code;
+}
+
+async function translatePart(text, source, target){
+  if(!text.trim()) return "";
+
+  const words = text.split(/(\s+)/);
+  const chunks = [];
+  let chunk = "";
+
+  for(const word of words){
+    if(new TextEncoder().encode(chunk + word).length > 430){
+      if(chunk.trim()) chunks.push(chunk);
+      chunk = word;
+    }else{
+      chunk += word;
+    }
+  }
+
+  if(chunk.trim()) chunks.push(chunk);
+
+  const translated = [];
+
+  for(const part of chunks){
+    const params = new URLSearchParams({
+      q: part,
+      langpair: source + "|" + target
+    });
+
+    const response = await fetch(
+      "https://api.mymemory.translated.net/get?" + params
+    );
+
+    const data = await response.json();
+
+    if(!response.ok || Number(data.responseStatus) !== 200){
+      throw Error(data.responseDetails || "Falha na tradução.");
+    }
+
+    translated.push(data.responseData.translatedText);
+  }
+
+  return translated.join("");
+}
+
+async function translateCard(){
+  const card = window.currentTranslationCard;
+  if(!card) return;
+
+  const source = cardSourceLanguage(card);
+  const target = $("translationTarget").value;
+  const result = $("translationResult");
+  const button = $("translateButton");
+
+  if(source === target){
+    return toast("Escolha um idioma diferente do original.");
+  }
+
+  const rules = card.oracle_text ||
+    card.card_faces?.map(f=>f.oracle_text || "").join("\n\n//\n\n") || "";
+
+  result.innerHTML = '<p class="muted">Traduzindo carta...</p>';
+  button.disabled = true;
+
+  try{
+    const name = await translatePart(card.name,source,target);
+    const text = await translatePart(rules,source,target);
+
+    result.innerHTML = `
+      <h3>Tradução (${esc(languageName(target))})</h3>
+      <p><b>Nome:</b> ${esc(name)}</p>
+      <h4>Regras traduzidas</h4>
+      <p class="rules">${esc(text || "Sem texto de regras.")}</p>
+      <button id="copyTranslation">Copiar tradução</button>
+    `;
+
+    $("copyTranslation").onclick = async()=>{
+      const content = name + "\n\n" + text;
+
+      try{
+        await navigator.clipboard.writeText(content);
+        toast("Tradução copiada!");
+      }catch{
+        toast("Não foi possível copiar automaticamente.");
+      }
+    };
+
+  }catch(error){
+    result.innerHTML =
+      `<p class="muted">${esc(error.message)}</p>`;
+  }finally{
+    button.disabled = false;
+  }
+}
+
+
+function detailMarkup(c){
+  const faces=c.card_faces||[];
+  const rules=c.oracle_text||faces.map(f=>f.oracle_text||"").join("\n\n//\n\n");
+  const liga="https://www.ligamagic.com.br/?view=cards/card&card="+encodeURIComponent(c.name);
+  const bolovo="https://www.bolovogames.com.br/?view=ecom/home";
+  const source=cardSourceLanguage(c);
+
+  return `<div class="detail-layout">
+    ${cardImage(c)?`<img class="detail-image" src="${esc(cardImage(c))}" alt="${esc(c.name)}">`:""}
+    <div>
+      <h2>${esc(c.name)}</h2>
+      <p class="muted">${esc(c.mana_cost||"")} · ${esc(c.type_line||"")}</p>
+
+      <h3>Texto original (${esc(languageName(source))})</h3>
+      <p class="rules">${esc(rules||"Sem texto de regras.")}</p>
+
+      <h3>Traduzir carta</h3>
+      <label>Idioma de destino</label>
+      <select id="translationTarget">
+        ${Object.entries(cardLanguages).map(([code,name])=>
+          `<option value="${code}" ${code==="pt"?"selected":""}>${name}</option>`
+        ).join("")}
+      </select>
+
+      <button id="translateButton">Traduzir carta</button>
+      <div id="translationResult"></div>
+
+      ${c.power!==undefined?`<p><b>Força/Resistência:</b> ${esc(c.power)}/${esc(c.toughness)}</p>`:""}
+      <p class="muted">Coleção: ${esc(c.set_name||"")} · Raridade: ${esc(c.rarity||"")}</p>
+
+      <div class="market-actions">
+        <button id="checkMarket">Consultar preço e estoque</button>
+        <a class="market-link" href="${liga}" target="_blank" rel="noopener">Abrir esta carta na LigaMagic</a>
+        <a class="market-link secondary-link" href="${bolovo}" target="_blank" rel="noopener">Abrir catálogo da Bolovo Games</a>
+      </div>
+    </div>
+  </div>
+  <div id="marketInfo" class="market-info"></div>`;
+}
+
+async function openDetails(c){
+  window.currentTranslationCard = c;
+
+  $("cardDetail").innerHTML = detailMarkup(c);
+  $("cardModal").hidden = false;
+
+  const b = $("checkMarket");
+  if(b) b.onclick = () => loadMarket(c);
+
+  const translateButton = $("translateButton");
+  if(translateButton){
+    translateButton.onclick = translateCard;
+  }
+}
 function closeDetails(){$("cardModal").hidden=true}
 async function searchCards(){const q=$("search").value.trim();if(!q)return;$("searchResults").innerHTML='<p class="muted">Buscando…</p>';try{const cards=await scry(q);$("searchResults").innerHTML=cards.slice(0,20).map((c,i)=>`<div class="card-row">${c.image_uris?.small||c.card_faces?.[0]?.image_uris?.small?`<img src="${esc(c.image_uris?.small||c.card_faces[0].image_uris.small)}" alt="">`:""}<div class="grow"><strong>${esc(c.name)}</strong><small>${esc(c.type_line)} · MV ${c.cmc}</small></div><button data-detail="${i}" class="secondary">Detalhes</button><button data-add="${i}">Adicionar</button></div>`).join("");$("searchResults").querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>openDetails(cards[+b.dataset.detail]));$("searchResults").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{addCard(cards[+b.dataset.add]);toast("Carta adicionada.")})}catch(e){$("searchResults").innerHTML=`<p class="muted">${esc(e.message)}</p>`}}
 function renderDeck(){$("deckCount").textContent=state.cards.reduce((s,c)=>s+c.qty,0)+" cartas";$("deckList").innerHTML=state.cards.length?state.cards.map((c,i)=>`<div class="card-row">${c.image?`<img src="${esc(c.image)}" alt="">`:""}<div class="grow"><strong>${esc(c.name)}</strong><small>${esc(c.type_line)} · MV ${c.cmc}</small></div><button data-info="${i}" class="secondary">Ver</button><button data-minus="${i}" class="secondary">−</button><b>${c.qty}</b><button data-plus="${i}">+</button><button data-del="${i}" class="danger">×</button></div>`).join(""):'<p class="muted">Adicione cartas para começar.</p>';
