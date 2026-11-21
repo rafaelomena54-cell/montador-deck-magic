@@ -24,6 +24,43 @@
  <div class="row"><button id="signIn">Entrar</button><button id="signUp" class="secondary">Criar conta</button></div>
  <p id="loginHelp" class="hint">O acesso exige configurar o Supabase no arquivo mobile/static/config.js.</p></div>
 </section>
+<section id="settingsView" class="login-wrap" hidden>
+  <div class="panel">
+    <h2>⚙️ Configurações</h2>
+
+    <label>Idioma do aplicativo
+      <select id="appLanguage">
+        <option value="pt-BR">Português</option>
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="ja">日本語</option>
+      </select>
+    </label>
+
+    <label>Cor de fundo
+      <select id="pageBackground">
+        <option value="#000000">Preto</option>
+        <option value="#ffffff">Branco</option>
+      </select>
+    </label>
+
+    <label>Cor dos painéis
+      <input id="panelColor" type="text" placeholder="Ex.: azul, roxo, cinza">
+    </label>
+
+    <label>Cor dos botões e das letras dos botões
+      <input id="buttonColor" type="text" placeholder="Ex.: verde, vermelho, azul">
+    </label>
+
+    <div class="row">
+      <button id="saveSettings">Salvar configurações</button>
+      <button id="closeSettings" class="secondary">Voltar</button>
+    </div>
+  </div>
+</section>  
 <div id="appView" hidden>
 <nav class="tabs">
  <button data-page="builder" class="active">Montar deck</button><button data-page="cards">Buscar cartas</button><button data-page="catalog">Catálogo</button><button data-page="stats">Estatísticas</button><button data-page="saved">Meus decks</button>
