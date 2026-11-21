@@ -342,6 +342,20 @@ function renderStats(){if(!$("stats"))return;const total=state.cards.reduce((s,c
  const cc={W:0,U:0,B:0,R:0,G:0,Incolor:0};state.cards.forEach(c=>{if(!c.colors?.length)cc.Incolor+=c.qty;(c.colors||[]).forEach(x=>cc[x]=(cc[x]||0)+c.qty)});renderBars("colorStats",cc);
  const target=$("format").value==="commander"?100:60;let notes=[];if(total&&total!==target)notes.push(`O deck tem ${total} cartas. Referência comum para ${$("format").value}: ${target}; confira as regras do formato.`);if(total&&lands/total<.25)notes.push("Proporção de terrenos abaixo de 25%.");if(avg>4.2)notes.push("Custo médio de mana elevado.");if(state.cards.some(c=>["not_legal","banned"].includes(c.legalities?.[$("format").value])))notes.push("Há cartas não legais ou banidas no formato selecionado.");if(!notes.length)notes.push("Nenhum alerta básico identificado.");$("analysisNotes").innerHTML=notes.map(n=>`<div class="note">${esc(n)}</div>`).join("")}
 function storageKey(){return"mtg-mobile-deck-"+(state.auth?.user?.id||"")}
+function grimorioStorageKey(){return"mtg-mobile-grimorio-"+(state.auth?.user?.id||"")}
+
+function saveGrimorio(){
+ localStorage.setItem(grimorioStorageKey(),JSON.stringify(state.grimorio));
+}
+
+function loadGrimorio(){
+ try{
+  const dados=JSON.parse(localStorage.getItem(grimorioStorageKey())||"[]");
+  state.grimorio=Array.isArray(dados)?dados:[];
+ }catch(e){
+  state.grimorio=[];
+ }
+}
 function saveLocal(){localStorage.setItem(storageKey(),JSON.stringify(payload()));toast("Deck salvo neste aparelho.")}
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem(storageKey())||"null");if(d)applyDeck(d)}catch{}}
 function applyDeck(d){$("deckName").value=d.name||"Meu deck";$("format").value=d.format||"standard";$("guild").value=d.guild||"";$("style").value=d.style||"Aggro";$("substyles").value=d.substyles||"";document.querySelectorAll(".color-choice input").forEach(x=>x.checked=(d.colors||[]).includes(x.value));state.cards=d.cards||[];renderDeck();renderStats()}
